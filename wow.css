@@ -1,0 +1,458 @@
+/* ==========================================================================
+   WOW EXTRAS — DropOtvet KP
+   Доп. интерактив поверх базовой системы KOMETA: прогресс-бар, навигация по
+   секциям, анимированные счётчики, магнитная подсветка карточки цены,
+   кнопка "наверх". Ничего в style.css не переопределяет — только новое.
+   ========================================================================== */
+
+/* ---- Прогресс-бар скролла ---- */
+.progress-bar {
+  position: fixed;
+  top: 0; left: 0;
+  height: 2px;
+  width: 0%;
+  background: linear-gradient(90deg, var(--blue), var(--purple));
+  z-index: 200;
+  box-shadow: 0 0 10px rgba(133, 76, 255, 0.6);
+  transition: width 0.08s linear;
+}
+
+/* ---- Навигация по секциям (точки справа) ---- */
+.section-dots {
+  position: fixed;
+  right: 22px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 90;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.section-dots__item {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+}
+.section-dots__label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg3);
+  opacity: 0;
+  transform: translateX(6px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  white-space: nowrap;
+}
+.section-dots__item:hover .section-dots__label,
+.section-dots__item.is-active .section-dots__label {
+  opacity: 1;
+  transform: translateX(0);
+}
+.section-dots__dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.22);
+  transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  flex-shrink: 0;
+}
+.section-dots__item:hover .section-dots__dot {
+  background: var(--fg2);
+  transform: scale(1.2);
+}
+.section-dots__item.is-active .section-dots__dot {
+  background: var(--blue);
+  box-shadow: 0 0 10px var(--blue), 0 0 18px rgba(80, 76, 255, 0.4);
+  transform: scale(1.3);
+}
+@media (max-width: 900px) {
+  .section-dots { display: none; }
+}
+
+/* ---- Анимированные счётчики ---- */
+.counter { font-variant-numeric: tabular-nums; }
+
+/* ---- Магнитная подсветка карточки цены: мягкое пятно света,
+   следующее за курсором внутри карточки ---- */
+.pricing-card--magnetic {
+  position: relative;
+  isolation: isolate;
+}
+.pricing-card--magnetic::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(260px circle at var(--mx, 50%) var(--my, 50%),
+    rgba(133, 76, 255, 0.18), transparent 60%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: -1;
+}
+.pricing-card--magnetic:hover::after { opacity: 1; }
+
+/* ---- Кнопка "наверх" ---- */
+.scroll-top-btn {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(20, 19, 28, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--fg2);
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(10px);
+  transition: opacity 0.25s ease, transform 0.25s ease, visibility 0.25s ease, border-color 0.2s ease, color 0.2s ease;
+  z-index: 90;
+}
+.scroll-top-btn.is-visible {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+.scroll-top-btn:hover {
+  border-color: rgba(133, 76, 255, 0.5);
+  color: var(--fg);
+}
+
+/* ---- Клиентский чип DropOtvet (текстовый, без лого) ---- */
+.client-chip {
+  font-family: var(--font);
+}
+
+/* ---- Итоговая цена: центрирующая обёртка ---- */
+.pricing-single { display: flex; justify-content: center; }
+
+@media (prefers-reduced-motion: reduce) {
+  .pricing-card--magnetic::after { display: none; }
+}
+
+/* ==========================================================================
+   REDESIGN PASS — компактный hero, аккордеон блоков работы, иконки
+   ========================================================================== */
+
+/* ---- Компактный hero: убираем лишнюю высоту, фон (starfield/ambient) не трогаем ---- */
+.hero--compact { padding: 118px 0 54px; }
+.hero--compact .pill { margin-bottom: 24px; }
+.hero--compact .hero__title {
+  font-size: clamp(32px, 6.2vw, 68px);
+  line-height: 1.04;
+}
+.hero--compact .hero__title--gradient { margin-top: 2px; }
+.hero--compact .hero__text { margin-top: 26px; max-width: 600px; }
+.hero--compact .hero__meta { margin-top: 42px; gap: 40px; }
+@media (max-width: 720px) {
+  .hero--compact { padding: 104px 0 44px; }
+  .hero--compact .hero__meta { margin-top: 32px; gap: 22px 28px; }
+}
+
+.hero__scroll-cue {
+  margin-top: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--fg3);
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  animation: heroScrollCue 2.2s ease-in-out infinite;
+}
+@keyframes heroScrollCue {
+  0%, 100% { transform: translateY(0); opacity: 0.55; }
+  50% { transform: translateY(4px); opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) { .hero__scroll-cue { animation: none; } }
+
+/* ---- Мини-навигация по семи блокам (пилюли) ---- */
+.scope-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 28px;
+}
+.scope-nav__btn {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--fg3);
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 100px;
+  padding: 7px 14px 7px 10px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+}
+.scope-nav__btn span.scope-nav__num {
+  color: var(--blue);
+  font-weight: 600;
+}
+.scope-nav__btn:hover { border-color: rgba(133,76,255,0.4); color: var(--fg2); }
+.scope-nav__btn.is-active {
+  border-color: rgba(133,76,255,0.55);
+  color: var(--fg);
+  background: rgba(133,76,255,0.1);
+}
+
+/* ---- Аккордеон: заголовок-кнопка ---- */
+.feature-panel__head {
+  all: unset;
+  box-sizing: border-box;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  cursor: pointer;
+}
+.feature-panel__head-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+}
+.feature-panel__head:focus-visible {
+  outline: 2px solid rgba(133,76,255,0.6);
+  outline-offset: 4px;
+  border-radius: 8px;
+}
+.feature-panel__icon {
+  flex-shrink: 0;
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--blue);
+  background: rgba(80,76,255,0.1);
+  border: 1px solid rgba(80,76,255,0.18);
+  transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+.feature-panel.is-open .feature-panel__icon {
+  color: var(--purple);
+  background: rgba(133,76,255,0.14);
+  border-color: rgba(133,76,255,0.3);
+}
+.feature-panel__head-left .feature-panel__title { min-width: 0; }
+.feature-panel__chevron {
+  flex-shrink: 0;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--fg3);
+  border: 1px solid rgba(255,255,255,0.1);
+  transition: transform 0.3s ease, color 0.2s ease, border-color 0.2s ease;
+}
+.feature-panel.is-open .feature-panel__chevron {
+  transform: rotate(180deg);
+  color: var(--blue);
+  border-color: rgba(80,76,255,0.4);
+}
+.feature-panel:hover .feature-panel__chevron { border-color: rgba(255,255,255,0.22); }
+
+/* ---- Аккордеон: сворачиваемое тело (grid-rows трюк, без JS-расчёта высоты) ---- */
+.feature-panel__body-wrap {
+  display: grid;
+  grid-template-rows: 0fr;
+  min-height: 0;
+  transition: grid-template-rows 0.38s cubic-bezier(.4,0,.2,1);
+}
+.feature-panel.is-open .feature-panel__body-wrap { grid-template-rows: 1fr; }
+.feature-panel__body-wrap > .feature-panel__body {
+  overflow: hidden;
+  min-height: 0;
+}
+.feature-panel__body { padding-top: 22px; }
+@media (prefers-reduced-motion: reduce) {
+  .feature-panel__body-wrap { transition: none; }
+}
+
+/* feature-panel is a CSS grid (num | body) in the base stylesheet — accordion
+   needs a simple block layout instead, the button supplies its own row */
+.feature-panel { display: block; }
+.feature-panel__num { font-size: 26px; line-height: 1; }
+@media (max-width: 720px) {
+  .feature-panel__icon { width: 32px; height: 32px; }
+  .feature-panel__head-left { gap: 12px; }
+}
+
+/* ==========================================================================
+   ТИПОГРАФИКА — акценты, подчёркивания, "живой" текст (десктоп + мобайл)
+   ========================================================================== */
+
+/* ---- Градиентные акценты теперь "дышат": мерцающий градиент + мягкое свечение ---- */
+.hl {
+  background-size: 220% 100%;
+  background-position: 0% 50%;
+  animation: hlShimmer 5s ease-in-out infinite;
+  text-shadow: 0 0 22px rgba(133, 76, 255, 0.22);
+  position: relative;
+}
+@keyframes hlShimmer {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+@media (prefers-reduced-motion: reduce) { .hl { animation: none; } }
+
+/* ---- Заголовки: акцентная плашка слева + growing подчёркивание при появлении ---- */
+.h2 {
+  position: relative;
+  display: inline-block;
+}
+.h2::after {
+  content: "";
+  display: block;
+  margin-top: 14px;
+  height: 3px;
+  width: 64px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--blue), var(--purple));
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.7s cubic-bezier(.4,0,.2,1) 0.1s;
+}
+.reveal.is-visible .h2::after,
+.is-visible.h2::after {
+  transform: scaleX(1);
+}
+
+/* ---- pill: точка теперь пульсирует живее (поверх базовой анимации) ---- */
+.pill { position: relative; overflow: hidden; }
+.pill::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 30%, rgba(255,255,255,0.08) 50%, transparent 70%);
+  background-size: 220% 100%;
+  animation: pillSheen 6s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes pillSheen {
+  0% { background-position: 150% 0; }
+  60%, 100% { background-position: -50% 0; }
+}
+@media (prefers-reduced-motion: reduce) { .pill::before { animation: none; } }
+
+/* ---- Тактильная обратная связь при тапе/клике — работает и на мобильном ---- */
+.glass,
+.feature-panel__head,
+.scope-nav__btn,
+.rubric-item,
+.about__callout,
+.quote-card,
+.client-chip {
+  transition: transform 0.18s ease, border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+.feature-panel__head:active,
+.scope-nav__btn:active,
+.rubric-item:active,
+.about__callout:active,
+.quote-card:active {
+  transform: scale(0.98);
+}
+
+/* ---- Выделенные "важно"-блоки получают мерцающую точку вместо статичной ---- */
+.about__callout .glow-dot { animation: glowDotPulse 2.4s ease-in-out infinite; }
+@keyframes glowDotPulse {
+  0%, 100% { opacity: 0.7; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.25); }
+}
+@media (prefers-reduced-motion: reduce) { .about__callout .glow-dot { animation: none; } }
+
+/* ---- Тап-свечение для карточек (аналог магнитной карточки цены, но тач-дружелюбное) ---- */
+.tap-glow { position: relative; isolation: isolate; overflow: hidden; }
+.tap-glow::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(220px circle at var(--mx, 50%) var(--my, 50%),
+    rgba(133, 76, 255, 0.16), transparent 62%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+  z-index: 0;
+}
+.tap-glow.is-glowing::after { opacity: 1; }
+.tap-glow > * { position: relative; z-index: 1; }
+@media (prefers-reduced-motion: reduce) { .tap-glow::after { display: none; } }
+
+/* ---- Мобильный индикатор текущего раздела (замена боковых точек, которые прячутся) ---- */
+.mobile-section-indicator {
+  display: none;
+  position: fixed;
+  top: 76px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 90;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--fg2);
+  background: rgba(20, 19, 28, 0.72);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 100px;
+  padding: 7px 16px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+.mobile-section-indicator.is-visible { opacity: 1; }
+.mobile-section-indicator .dot {
+  display: inline-block;
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--blue);
+  box-shadow: 0 0 8px var(--blue);
+  margin-right: 7px;
+  vertical-align: middle;
+}
+@media (max-width: 900px) {
+  .mobile-section-indicator { display: block; }
+}
+
+/* ---- Хедер: аватар клиента вместо белой плашки с текстом ---- */
+.header__client {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 16px 5px 5px;
+  border-radius: 100px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.header__avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.14);
+}
+.header__client-name {
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.01em;
+  color: var(--fg);
+}
+@media (max-width: 560px) {
+  .header__client-name { display: none; }
+  .header__client { padding: 3px; border: none; background: none; }
+}
