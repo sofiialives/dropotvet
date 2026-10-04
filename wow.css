@@ -513,22 +513,22 @@
   box-shadow: 0 18px 40px rgba(80, 76, 255, 0.18);
 }
 
-/* телефонная рамка (закреп-скрины) */
+/* телефонная рамка (закреп-скрины) — настоящий фотореалистичный мокап iPhone (PNG-оверлей),
+   наш скрин подложен точно под вырез экрана на оверлее */
 .phone-frame {
   position: relative;
   width: 100%;
-  aspect-ratio: 9 / 19.5;
-  border-radius: 34px;
-  background: linear-gradient(165deg, #2a2a32, #0c0c10 55%);
-  padding: 10px;
-  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.08);
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  aspect-ratio: 442 / 881;
+  filter: drop-shadow(0 18px 36px rgba(0, 0, 0, 0.5));
+  transition: transform 0.25s ease, filter 0.25s ease;
 }
 .phone-frame__screen {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  border-radius: 24px;
+  position: absolute;
+  left: 9.05%;
+  top: 4.65%;
+  right: 9.28%;
+  bottom: 5.9%;
+  border-radius: 17px;
   overflow: hidden;
   background: #000;
 }
@@ -539,21 +539,19 @@
   object-fit: cover;
   object-position: top center;
 }
-.phone-frame__notch {
+.phone-frame__overlay {
   position: absolute;
-  top: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 34%;
-  height: 20px;
-  background: #0c0c10;
-  border-radius: 100px;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   z-index: 2;
+  pointer-events: none;
+  user-select: none;
 }
 .case-carousel__slide:hover .phone-frame,
 .phone-frame:active {
   transform: translateY(-3px);
-  box-shadow: 0 20px 42px rgba(80, 76, 255, 0.22), inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+  filter: drop-shadow(0 22px 42px rgba(80, 76, 255, 0.3));
 }
 
 /* стрелки */
