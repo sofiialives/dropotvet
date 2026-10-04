@@ -150,6 +150,98 @@
     });
   }
 
+  /* ---- 4c. Карусели кейсов: стрелки + точки + нативный свайп ---- */
+  function initCaseCarousels() {
+    var carousels = Array.prototype.slice.call(document.querySelectorAll('.case-carousel'));
+    if (!carousels.length) return;
+
+    carousels.forEach(function (carousel) {
+      var track = carousel.querySelector('.case-carousel__track');
+      var slides = Array.prototype.slice.call(carousel.querySelectorAll('.case-carousel__slide'));
+      var prevBtn = carousel.querySelector('.case-carousel__arrow--prev');
+      var nextBtn = carousel.querySelector('.case-carousel__arrow--next');
+      var dotsWrap = carousel.querySelector('.case-carousel__dots');
+      if (!track || !slides.length) return;
+
+      var dots = slides.map(function (_, i) {
+        var dot = document.createElement('button');
+        dot.type = 'button';
+        dot.className = 'case-carousel__dot';
+        dot.setAttribute('aria-label', 'Слайд ' + (i + 1));
+        dot.addEventListener('click', function () { scrollToSlide(i); });
+        if (dotsWrap) dotsWrap.appendChild(dot);
+        return dot;
+      });
+
+      /* offsetLeft is relative to the nearest positioned ancestor, not
+         necessarily the scrolling track — use getBoundingClientRect() so
+         this works regardless of what sits between slide and track. */
+      function slideLeft(i) {
+        return slides[i].getBoundingClientRect().left - track.getBoundingClientRect().left + track.scrollLeft;
+      }
+
+      function scrollToSlide(i) {
+        i = Math.max(0, Math.min(slides.length - 1, i));
+        var target = slideLeft(i);
+        var startLeft = track.scrollLeft;
+        track.scrollTo({ left: target, behavior: prefersReducedMotion ? 'auto' : 'smooth' });
+        /* Safety net: some browser/automation combinations silently drop a
+           smooth-scroll animation on its first call. If nothing moved after
+           a beat, force it instantly so the controls never feel dead. */
+        setTimeout(function () {
+          if (Math.abs(track.scrollLeft - startLeft) < 2 && Math.abs(target - startLeft) > 2) {
+            track.scrollTo({ left: target, behavior: 'auto' });
+          }
+        }, 260);
+      }
+
+      function currentIndex() {
+        /* nearest slide to the current scroll position reads more reliably
+           than a fixed threshold, especially near the last slide where less
+           than a full slide-width of scroll range remains. */
+        var pos = track.scrollLeft;
+        var best = 0, bestDist = Infinity;
+        slides.forEach(function (s, i) {
+          var dist = Math.abs(slideLeft(i) - pos);
+          if (dist < bestDist) { bestDist = dist; best = i; }
+        });
+        return best;
+      }
+
+      function setActive(idx) {
+        dots.forEach(function (d, i) { d.classList.toggle('is-active', i === idx); });
+        if (prevBtn) prevBtn.toggleAttribute('disabled', idx <= 0);
+        if (nextBtn) nextBtn.toggleAttribute('disabled', idx >= slides.length - 1);
+      }
+
+      function updateUI() { setActive(currentIndex()); }
+
+      /* Clicking an arrow already tells us exactly which slide we're headed
+         to, so mark it active immediately rather than waiting on the scroll
+         event — the debounced scroll handler can otherwise race a fast
+         double-click and leave the dots a step behind. */
+      if (prevBtn) prevBtn.addEventListener('click', function () {
+        var idx = Math.max(0, currentIndex() - 1);
+        scrollToSlide(idx);
+        setActive(idx);
+      });
+      if (nextBtn) nextBtn.addEventListener('click', function () {
+        var idx = Math.min(slides.length - 1, currentIndex() + 1);
+        scrollToSlide(idx);
+        setActive(idx);
+      });
+
+      var scrollTimer = null;
+      track.addEventListener('scroll', function () {
+        if (scrollTimer) clearTimeout(scrollTimer);
+        scrollTimer = setTimeout(updateUI, 80);
+      }, { passive: true });
+
+      window.addEventListener('resize', updateUI);
+      updateUI();
+    });
+  }
+
   /* ---- 5b. Аккордеон блоков работы + мини-навигация по ним ---- */
   function initFeaturePanels() {
     var panels = Array.prototype.slice.call(document.querySelectorAll('.feature-panel'));
@@ -223,6 +315,7 @@
     initMagneticCard();
     initTapGlow();
     initFeaturePanels();
+    initCaseCarousels();
     initScrollTop();
   });
 })();

@@ -267,11 +267,16 @@
 /* ---- Аккордеон: сворачиваемое тело (grid-rows трюк, без JS-расчёта высоты) ---- */
 .feature-panel__body-wrap {
   display: grid;
-  grid-template-rows: 0fr;
+  /* minmax(0, 0fr), not bare 0fr: a plain 0fr track still respects its
+     item's automatic minimum (content) size in some engines, which let
+     tall content (the case carousels) leak a sliver through while
+     collapsed. minmax(0, …) pins the track's floor to 0 explicitly. */
+  grid-template-rows: minmax(0, 0fr);
   min-height: 0;
+  overflow: hidden;
   transition: grid-template-rows 0.38s cubic-bezier(.4,0,.2,1);
 }
-.feature-panel.is-open .feature-panel__body-wrap { grid-template-rows: 1fr; }
+.feature-panel.is-open .feature-panel__body-wrap { grid-template-rows: minmax(0, 1fr); }
 .feature-panel__body-wrap > .feature-panel__body {
   overflow: hidden;
   min-height: 0;
@@ -456,3 +461,160 @@
   .header__client-name { display: none; }
   .header__client { padding: 3px; border: none; background: none; }
 }
+
+/* ==========================================================================
+   КЕЙСЫ — карусель (стрелки + точки + свайп пальцем)
+   ========================================================================== */
+.case-carousel {
+  margin-top: 22px;
+}
+.case-carousel__viewport {
+  position: relative;
+}
+.case-carousel__track {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-padding-left: 0;
+  padding: 2px 2px 6px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.case-carousel__track::-webkit-scrollbar { display: none; }
+
+.case-carousel__slide {
+  flex: 0 0 auto;
+  width: min(280px, 72vw);
+  scroll-snap-align: start;
+}
+
+/* обычная карточка-превью (слайды фирстиля / эмодзи) */
+.case-card {
+  display: block;
+  width: 100%;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #0c0c10;
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.4);
+  transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+.case-card img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+}
+.case-carousel__slide:hover .case-card,
+.case-card:active {
+  transform: translateY(-3px);
+  border-color: rgba(133, 76, 255, 0.4);
+  box-shadow: 0 18px 40px rgba(80, 76, 255, 0.18);
+}
+
+/* телефонная рамка (закреп-скрины) */
+.phone-frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 9 / 19.5;
+  border-radius: 34px;
+  background: linear-gradient(165deg, #2a2a32, #0c0c10 55%);
+  padding: 10px;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.phone-frame__screen {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 24px;
+  overflow: hidden;
+  background: #000;
+}
+.phone-frame__screen img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+}
+.phone-frame__notch {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 34%;
+  height: 20px;
+  background: #0c0c10;
+  border-radius: 100px;
+  z-index: 2;
+}
+.case-carousel__slide:hover .phone-frame,
+.phone-frame:active {
+  transform: translateY(-3px);
+  box-shadow: 0 20px 42px rgba(80, 76, 255, 0.22), inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+/* стрелки */
+.case-carousel__arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(14, 14, 18, 0.82);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: var(--fg);
+  cursor: pointer;
+  z-index: 5;
+  transition: background 0.2s ease, border-color 0.2s ease, opacity 0.2s ease, transform 0.15s ease;
+}
+.case-carousel__arrow:hover { border-color: rgba(133, 76, 255, 0.5); background: rgba(30, 28, 40, 0.9); }
+.case-carousel__arrow:active { transform: translateY(-50%) scale(0.92); }
+.case-carousel__arrow--prev { left: 6px; }
+.case-carousel__arrow--next { right: 6px; }
+.case-carousel__arrow[disabled] { opacity: 0.25; pointer-events: none; }
+@media (max-width: 720px) {
+  .case-carousel__arrow { display: none; }
+}
+
+/* точки */
+.case-carousel__dots {
+  display: flex;
+  justify-content: center;
+  gap: 7px;
+  margin-top: 14px;
+}
+.case-carousel__dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.18);
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease, width 0.25s ease;
+}
+.case-carousel__dot.is-active {
+  background: linear-gradient(90deg, var(--blue), var(--purple));
+  width: 20px;
+  border-radius: 100px;
+}
+
+.case-carousel__label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.case-carousel__label .mono-caption { margin: 0; }
+.case-carousel__label .case-carousel__hint {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--fg3);
+  letter-spacing: 0.06em;
+}
+@media (min-width: 721px) { .case-carousel__label .case-carousel__hint { display: none; } }
